@@ -270,6 +270,28 @@ admin.post('/addTrainer',(req,res)=>{
 })
 
 
+admin.post('/ADetails',(req,res)=>{
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            db.collection('instituteDetails').findOne({_id:ObjectId(req.body.id)},(err,result)=>{
+                if(err){
+                    res.status(300).send({auth:false,token:err})
+                }
+                else{
+                    res.status(200).send({auth:true,token:'successfull',data:result})
+                }
+
+            })
+
+
+        }
+    })
+})
+
 
 
 module.exports =admin
