@@ -2,7 +2,7 @@ const express = require('express')
 const fs = require('fs')
 const admin = express.Router()
 const bodyParser= require('body-parser')
-const {MongoClient} = require('mongodb')
+const {MongoClient, ObjectId} = require('mongodb')
 const bcrypt = require('bcrypt')
 const hidden = require('../config/hidden')
 const url ="mongodb+srv://testing:test123@cluster1.vnynuru.mongodb.net/?retryWrites=true&w=majority"
@@ -234,7 +234,7 @@ admin.post('/instituteLogin',(req,res)=>{
                 }
                 else{
                     const token = jwt.sign({"name":user.Institute_Name},hidden.secrete,{})
-                    res.status(200).send({auth:true,token:'Successfully Logined',data:token})
+                    res.status(200).send({auth:true,token:'Successfully Logined',data:token,id:user._id})
                 }
             }
         }
@@ -244,6 +244,30 @@ admin.post('/instituteLogin',(req,res)=>{
 
 })
 
+
+admin.post('/addTrainer',(req,res)=>{
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const query1 = {"id":62}
+            const query2 = {"trainer_Name":req.body.tname,"trainer_Experience":req.body.tExp,"trainer_Category":req.body.topt,"trainer_Dscribtion":req.body.desc}
+            const db = dbres.db('Agmay')
+
+            db.collection('courses').updateOne(query1,{$push:{trainers:query2}},(err,result)=>{
+                if(err){
+                    console.log(err)
+                }
+                else{
+                    res.status(200).send({auth:true,data:result})
+                }
+            })
+
+        }
+    })
+
+})
 
 
 
