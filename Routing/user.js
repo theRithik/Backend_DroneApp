@@ -2,7 +2,7 @@ const express = require('express')
 const fs = require('fs')
 const user = express.Router()
 const bodyParser= require('body-parser')
-const {MongoClient, Admin} = require('mongodb')
+const {MongoClient, Admin, ObjectId} = require('mongodb')
 const bcrypt = require('bcrypt')
 const fileUpload  = require('express-fileupload');
 const jwt = require('jsonwebtoken')
@@ -113,7 +113,7 @@ user.post('/userLogin',(req,res)=>{
                 }
                 else{
                     const token = jwt.sign({"name":user.user_Name},hidden.secrete,{})
-                    res.status(200).send({auth:true,token:'Successfully Logined',data:token})
+                    res.status(200).send({auth:true,token:'Successfully Logined',data:token,id:user._id})
                 }
             }
         }
@@ -122,6 +122,30 @@ user.post('/userLogin',(req,res)=>{
     })
 
 })
+user.post('/getUser',(req,res)=>{
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db=dbres.db('Agmay')
+           
+            db.collection('userDetails').find({_id:ObjectId(req.body._id)}).toArray((err,result)=>{
+                if(err){
+                    console.log(err)
+                }
+                if(result===[]){
+                    res.status(300).send({auth:false,token:'wrong id'})
+                }
+                else{
+                
+                    res.status(200).send({auth:true,result})
+                }
+            })
+        }
+    })
+})
+
 
 
 
@@ -132,8 +156,7 @@ user.post('/details',(req,res)=>{
         }
         else{
             const db = dbres.db('Agmay')
-            const id = JSON.parse(req.body.id)
-            db.collection('courses').find({"id":id}).toArray((err,result)=>{
+            db.collection('courses').find({_id:ObjectId(req.body._id)}).toArray((err,result)=>{
                 if(err){
                     console.log(err)
                 }
