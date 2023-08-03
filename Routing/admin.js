@@ -59,6 +59,27 @@ admin.post('/addCourse',(req,res)=>{
 })
 
 
+admin.post('/getUser',(req,res)=>{
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            db.collection('instituteDetails').findOne({"Institute_Email":req.body.email},(err,result)=>{
+                if(err){
+                    console.log(err)
+                }
+                else{
+                    console.log(result)
+                    res.status(200).send(result)
+                }
+
+            })
+        }
+    })
+})
+
 admin.put('/updateCourse',(req,res)=>{
     client.connect((dberr,dbres)=>{
         if(dberr){
@@ -167,7 +188,8 @@ admin.post('/Register',(req,response)=>{
                             console.log(err)
                         }
                         else{
-                            response.status(200).send({auth:true,token:'user successfully registerd'})
+                            console.log(data)
+                            response.status(200).send({auth:true,token:'user successfully registerd',result:data})
                         }
 
                     })
@@ -287,6 +309,53 @@ admin.post('/ADetails',(req,res)=>{
 
             })
 
+
+        }
+    })
+})
+
+
+
+admin.put('/updateAdminDetails',(req,res)=>{
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            const data2 = {"_id":ObjectId(req.body._id)}
+            const data = {"Name":req.body.Name,"Institute_Email":req.body.Institute_Email,"alternative_Email":req.body.alternative_Email,"phone_Number":req.body.Phone_number,"Address":req.body.Address,"Branch_Address":req.body.branch_address}
+            db.collection('instituteDetails').updateOne(data2,{$set:data},function(err,result){
+if(err){
+    console.log(err)
+}
+else{
+    console.log(result)
+    res.status(200).send({auth:true,data:result})
+}
+            })
+        }
+    })
+})
+
+admin.put('/category',(req,res)=>{
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            const data2 = {"_id":ObjectId(req.body._id)}
+            const query = {"category":req.body.category,"category_types":req.body.category_types}
+
+            db.collection('instituteDetails').updateOne(data2,{$set:query},function(err,result){
+                if(err){
+                    console.log(err)
+                }
+                else{
+                    res.status(200).send({auth:true,data:result})
+                }
+            })
 
         }
     })

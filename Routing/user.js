@@ -61,7 +61,7 @@ user.post('/userRegister',(req,response)=>{
                 else{
                     const hashedPassword= bcrypt.hashSync(req.body.Password,8)
                     const user={
-                        user_Name:req.body.Name,
+                        First_Name:req.body.Name,
                         user_Email:req.body.Email,
                         password:hashedPassword,
                         role:'Admin',
@@ -113,7 +113,7 @@ user.post('/userLogin',(req,res)=>{
                 }
                 else{
                     const token = jwt.sign({"name":user.user_Name},hidden.secrete,{})
-                    res.status(200).send({auth:true,token:'Successfully Logined',data:token,id:user._id})
+                    res.status(200).send({auth:true,token:'Successfully Logined',data:token,id:user._id,})
                 }
             }
         }
@@ -190,43 +190,65 @@ user.put('/postDetails',(req,res)=>{
 
 
 
+user.put('/updateUserProfile',(req,res)=>{
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            const _id = {"_id":ObjectId(req.body._id)}
+            const update = {"First_Name":req.body.fstName,"Last_Name":req.body.lstName,"user_Email":req.body.email,"phone":req.body.phone,"alternate_Phone":req.body.alternate,"DOB":req.body.DOB,"passport":req.body.passport,"aadhaar":req.body.aadhaar,"Address":req.body.paddress,"Alternate_address":req.body.preAddress}
+            db.collection('userDetails').update(_id,{$set:update},function(err,result){
+                if(err){
+                    console.log(err)
+                }
+                else{
+                    console.log(result)
+                    res.status(200).send({auth:true,data:result})
+                }
+            })
+        }
+    })
+})
+
+
+
 
 // user.post('/addImage',(req,res)=>{
-//     const imgFile = req.files.image
-//     if(imgFile.size>4* 1024 * 1024 ){
-//         console.log('cannot upload')
-
-//     }
-//     else{
-//         res.send({data:imgFile.data})
-//     }
+//     const imgFile = req.files
+//     console.log(imgFile.image.data)
+//     console.log(imgFile.image.name)
+   
 // })
 
 
 
-// user.post('/addImage',(req,res)=>{
-//     const imgFile = req.files.image.data
-//     res.send({data:imgFile})
-    // client.connect((dberr,dbres)=>{
-    //     if(dberr){
-    //         console.log(dberr)
-    //     }
-    //     else{
-    //         const db = dbres.db('Agmay')
-    //         const imgFile = req.files.image.data
-    //         console.log(imgFile)
-    //         db.collection('instituteDetails').insertOne({"image":imgFile},(er,result)=>{
-    //             if(er){
-    //                 console.log(er)
-    //             }
-    //             else{
-    //                 res.send({data:imgFile})
-    //             }
-    //         })
-    //     }
-    // })
+user.put('/addImage',(req,res)=>{
 
-// })
+    const imgFile = req.files
+    const image = imgFile.image.data
+    const id = imgFile.image.name
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            const _id = {"_id":ObjectId(id)}
+            const query = {"profile_photo":image}
+            db.collection('userDetails').updateOne(_id,{$set:query},(er,result)=>{
+                if(er){
+                    console.log(er)
+                }
+                else{
+                    res.status(200).send({auth:true,data:result})
+                }
+            })
+        }
+    })
+
+})
 
 
 
