@@ -7,10 +7,12 @@ const bcrypt = require('bcrypt')
 const hidden = require('../config/hidden')
 const url ="mongodb+srv://testing:test123@cluster1.vnynuru.mongodb.net/?retryWrites=true&w=majority"
 const jwt = require('jsonwebtoken')
+const fileUpload  = require('express-fileupload');
 
 
 admin.use(bodyParser.urlencoded({extended:true}))
 admin.use(bodyParser.json())
+admin.use(fileUpload())
 
 const token = ''
 const client = new MongoClient(url,{
@@ -30,7 +32,8 @@ admin.post('/addCourse',(req,res)=>{
         else{
             const db = dbres.db('Agmay')
             const courseData={
-                "id":JSON.parse(req.body.id),
+                "id":Math.floor(Date.now() + Math.random()),
+                "Institute_id":req.body.Institute_id,
                 "institute_name":req.body.institute_name,
                 "course":req.body.course,
                 "fees":req.body.fees,
@@ -42,6 +45,7 @@ admin.post('/addCourse',(req,res)=>{
                 "courseDuration":req.body.courseDuration,
       "droneType":req.body.droneType,
       "droneCategory":req.body.droneCategory,
+      "description":req.body.description,
       "date":date
             }
 
@@ -51,11 +55,39 @@ admin.post('/addCourse',(req,res)=>{
                 }
                 else{
                     res.status(200).send(result)
-                    console.log(result)
                 }
             })
         }
     })
+})
+
+
+
+admin.put('/CourseaddImage',(req,res)=>{
+    const imgFile = req.files
+   
+    const image = imgFile.image.data
+    
+    const id = imgFile.image.name
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            const _id = {"_id":ObjectId(id)}
+            const query = {"display_image":image}
+            db.collection('courses').updateOne(_id,{$set:query},(er,result)=>{
+                if(er){
+                    console.log(er)
+                }
+                else{
+                    res.status(200).send({auth:true,data:result})
+                }
+            })
+        }
+    })
+
 })
 
 
@@ -71,7 +103,6 @@ admin.post('/getUser',(req,res)=>{
                     console.log(err)
                 }
                 else{
-                    console.log(result)
                     res.status(200).send(result)
                 }
 
@@ -87,24 +118,24 @@ admin.put('/updateCourse',(req,res)=>{
         }
         else{
             const db = dbres.db('Agmay')
-            const id = JSON.parse(req.body.id)
+            const id = ObjectId(req.body._id)
             const userToken = req.body.token
             if(!userToken) return res.status(300).send({auth:false, token:'your are not authorized invalid token'})
 
             jwt.verify(userToken,hidden.secrete,(err,data)=>{
                 if(err) return res.status(300).send({auth:false,token:"invalid token provided"})
                 else{
-            db.collection('courses').findOne({"id":id},(err,result)=>{
+            db.collection('courses').findOne({"_id":id},(err,result)=>{
                 if(err){
                     console.log(err)
                 }
                 else{
                     if(!result){
-                        res.status(300).send({auth:false,token:'wrong course id entered'})
+                        res.status(300).send({auth:false,token:'An error occured'})
                     }
                     else{
                        const updateField={}
-                        const query1 = {"id":id}
+                        const query1 = {"_id":id}
                         if(req.body.CourseName!==undefined&&req.body.CourseName!==''){
                            updateField.course  = req.body.CourseName
                         }
@@ -140,8 +171,8 @@ admin.put('/updateCourse',(req,res)=>{
                                 console.log(err)
                             }
                             else{
+                               
                                 res.status(200).send(data)
-                                console.log(data)
                             }
                         })
                     }
@@ -153,6 +184,35 @@ admin.put('/updateCourse',(req,res)=>{
 }
     })
 })
+
+
+admin.post('/findCourse',(req,res)=>{
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            db.collection('courses').find({"Institute_id":req.body.Institute_id}).toArray((err,result)=>{
+                if(err){
+                    console.log(err)
+                }
+                else{
+                    if(result===[]){
+                        res.status(300).send("You haven't added any course ")
+                    }
+                    else{
+                        res.status(200).send(result)
+                    }
+                    
+                }
+            })
+        }
+    })
+})
+
+
+
 
 
 
@@ -273,8 +333,8 @@ admin.post('/addTrainer',(req,res)=>{
             console.log(dberr)
         }
         else{
-            const query1 = {"id":62}
-            const query2 = {"trainer_Name":req.body.tname,"trainer_Experience":req.body.tExp,"trainer_Category":req.body.topt,"trainer_Dscribtion":req.body.desc}
+            const query1 = {"_id":ObjectId(req.body.id)}
+            const query2 = {"trainer_Name":req.body.tname,"trainer_Experience":req.body.tExp,"trainer_Category":req.body.topt,"trainer_Description":req.body.desc}
             const db = dbres.db('Agmay')
 
             db.collection('courses').updateOne(query1,{$push:{trainers:query2}},(err,result)=>{
