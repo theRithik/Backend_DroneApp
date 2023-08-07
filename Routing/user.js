@@ -2,11 +2,11 @@ const express = require('express')
 const fs = require('fs')
 const user = express.Router()
 const bodyParser= require('body-parser')
-const {MongoClient, Admin, ObjectId} = require('mongodb')
+const {MongoClient, ObjectId} = require('mongodb')
 const bcrypt = require('bcrypt')
 const fileUpload  = require('express-fileupload');
 const jwt = require('jsonwebtoken')
-const url ="mongodb+srv://testing:test123@cluster1.vnynuru.mongodb.net/?retryWrites=true&w=majority"
+const url ='mongodb+srv://Rithik:Agmay%402022@cluster0.40mtm7p.mongodb.net/?retryWrites=true&w=majority'
 const hidden = require('../config/hidden')
 
 user.use(bodyParser.urlencoded({extended:true}))
@@ -251,6 +251,134 @@ user.put('/addImage',(req,res)=>{
 })
 
 
+user.post('/addResume',(req,res)=>{
+const pdf = req.files
+const pdfData = pdf.file.data
+const pdfName = pdf.file.name
+const id = pdf.id.name
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            const name =pdf.name
+            db.collection('user_resume').findOne({"id":id},(err,result)=>{
+                if(!result){
+                    db.collection('user_resume').insertOne({"id":id,"name":pdfName,"resume":pdfData},(err,value)=>{
+                        if(err){
+                            console.log(er)
+                        }
+                        else{
+                            console.log(value,'insert')
+                            res.status(200).send({auth:true,data:value})
+                        }
+
+                    })
+                }
+                else{
+                    db.collection('user_resume').updateOne({"id":id},{$set:{"name":pdfName,"resume":pdfData}},(err,data)=>{
+                        if(err){
+                            console.log(err)
+                        }
+                        else{
+                            console.log(data,'update')
+                            res.status(200).send(data)
+                        }
+                    })
+                }
+            })
+        }
+    })
+})
+
+
+
+user.post('/otherDoc',(req,res)=>{
+    const pdf = req.files
+    const pdfData = pdf.file.data
+    const pdfName = pdf.file.name
+    const id = pdf.id.name
+        client.connect((dberr,dbres)=>{
+            if(dberr){
+                console.log(dberr)
+            }
+            else{
+                const db = dbres.db('Agmay')
+                db.collection('user_doc').findOne({"id":id},(err,result)=>{
+                    if(!result){
+                        db.collection('user_doc').insertOne({"id":id, "doc":[{"name":pdfName,"resume":pdfData}]},(err,value)=>{
+                            if(err){
+                                console.log(er)
+                            }
+                            else{
+                                console.log(value,'insert')
+                                res.status(200).send({auth:true,data:value})
+                            }
+    
+                        })
+                    }
+                    else{
+                        db.collection('user_doc').updateOne({"id":result.id},{$push:{doc:{"name":pdfName,"resume":pdfData}}},(err,data)=>{
+                            if(err){
+                                console.log(err)
+                            }
+                            else{
+                                console.log(data,'update')
+                                res.status(200).send(data)
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    })
+    
+    
+user.post('/getImageBanner',(req,res)=>{
+    const id = req.body.id
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            db.collection('course_banner').find({"id":id}).toArray((er,result)=>{
+                if(er){
+                    console.log(er)
+                }
+                else{
+                    res.status(200).send(result)
+                }
+            })
+        }
+    })
+
+})
+
+
+
+    user.post('/getphotoGallery',(req,res)=>{
+        client.connect((dberr,dbres)=>{
+            if(dberr){
+                console.log(dberr)
+            }
+            else{
+                const db = dbres.db('Agmay')    
+             const id=req.body.id
+                db.collection('courseImage_gallery').find({"id":id}).toArray((er,value)=>{
+                    if(er){
+                        console.log(er)
+                    }
+                    else{
+                     console.log(value)
+                        res.status(200).send(value)
+                    }
+                })       
+ }
+        })
+ })
+ 
 
 
 module.exports=user

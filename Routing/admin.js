@@ -5,7 +5,7 @@ const bodyParser= require('body-parser')
 const {MongoClient, ObjectId} = require('mongodb')
 const bcrypt = require('bcrypt')
 const hidden = require('../config/hidden')
-const url ="mongodb+srv://testing:test123@cluster1.vnynuru.mongodb.net/?retryWrites=true&w=majority"
+const url ='mongodb+srv://Rithik:Agmay%402022@cluster0.40mtm7p.mongodb.net/?retryWrites=true&w=majority'
 const jwt = require('jsonwebtoken')
 const fileUpload  = require('express-fileupload');
 
@@ -90,6 +90,51 @@ admin.put('/CourseaddImage',(req,res)=>{
 
 })
 
+
+admin.put('/addImageBanner',(req,res)=>{
+    const imgFile = req.files
+    const image = imgFile.image.data
+    const id = imgFile.image.name
+    const add ={
+        "id":id,
+        "banner_image":image
+    }
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')    
+           db.collection('course_banner').findOne({"id":id},(err,result)=>{
+         if(!result){
+            db.collection('course_banner').insertOne(add,(er,value)=>{
+                if(er){
+                    console.log(er)
+                }
+                else{
+                    console.log(value,'insert')
+                    res.status(200).send({auth:true,data:value})
+                }
+            })
+                    
+                }
+                else{
+                    const query2= { "banner_image":image}
+                    db.collection('course_banner').updateOne({"id":result.id},{$set:query2},(err,data)=>{
+                        if(err){
+                            console.log(err)
+                        }
+                        else{
+                            console.log(data,'update')
+                            res.status(200).send(data)
+                        }
+                    })
+                }
+
+            })
+    }
+    })
+})
 
 admin.post('/getUser',(req,res)=>{
     client.connect((dberr,dbres)=>{
@@ -231,7 +276,6 @@ admin.post('/Register',(req,response)=>{
                 else{
                 if(result){
                     response.status(300).send({auth:false,token:'email already in excists'})
-            
                 }
                 else{
                     const hashedPassword= bcrypt.hashSync(req.body.Password,8)
@@ -248,8 +292,8 @@ admin.post('/Register',(req,response)=>{
                             console.log(err)
                         }
                         else{
-                            console.log(data)
-                            response.status(200).send({auth:true,token:'user successfully registerd',result:data})
+                            const token = jwt.sign({"name":user.Institute_Name},hidden.secrete,{})
+                            response.status(200).send({auth:true,token:'user successfully registerd',result:data,dataToken:token})
                         }
 
                     })
@@ -352,6 +396,33 @@ admin.post('/addTrainer',(req,res)=>{
 })
 
 
+
+admin.put('/addSyllabus',(req,res)=>{
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const query1 = {"_id":ObjectId(req.body.id)}
+            const query2 = {"syllabus":req.body.syllabus}
+            const db = dbres.db('Agmay')
+
+            db.collection('courses').updateOne(query1,{$set:query2},(err,result)=>{
+                if(err){
+                    console.log(err)
+                }
+                else{
+                    console.log(result)
+                    res.status(200).send({auth:true,data:result})
+                }
+            })
+
+        }
+    })
+
+})
+
+
 admin.post('/ADetails',(req,res)=>{
     client.connect((dberr,dbres)=>{
         if(dberr){
@@ -421,6 +492,60 @@ admin.put('/category',(req,res)=>{
     })
 })
 
+admin.post('/photoGallery',(req,res)=>{
+    
+    const imgFile = req.files
+    const arr =[]
+    const id =imgFile.name.name
+     for(let i=0; i<imgFile.image.length;i++){
+        let obj={}
+        obj[i]="image"+i
+        obj['image']=imgFile.image[i].data
+arr.push(obj)
+     }
+     
+     client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+        db.collection('courseImage_gallery').findOne({"id":id},(err,result)=>{
+                if(!result){
+                   db.collection('courseImage_gallery').insertOne({"id":id,"gallery":arr},(er,value)=>{
+                       if(er){
+                           console.log(er)
+                       }
+                       else{
+                           console.log(value,'insert')
+                           res.status(200).send({auth:true,data:value})
+                       }
+                   })       
+                       }
+                       else{
+                           db.collection('courseImage_gallery').updateOne({"id":result.id},{$push:{"gallery":{$each:arr}}},(err,data)=>{
+                               if(err){
+                                   console.log(err)
+                               }
+                               else{
+                                   console.log(data,'update')
+                                   res.status(200).send(data)
+                               }
+                           })
+                       }
+                    })
+                }
+            })
+    })
+
+
+
+
+    admin.post('/image12',(req,res)=>{
+        const img = req.files
+        console.log(img)
+        res.send(img.foo)
+    })
 
 
 module.exports =admin
