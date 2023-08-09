@@ -378,7 +378,10 @@ admin.post('/addTrainer',(req,res)=>{
         }
         else{
             const query1 = {"_id":ObjectId(req.body.id)}
-            const query2 = {"trainer_Name":req.body.tname,"trainer_Experience":req.body.tExp,"trainer_Category":req.body.topt,"trainer_Description":req.body.desc}
+             var date = new Date().toISOString().split('T')[1].split(':')[2].split('.')[0]
+             Number(date)
+            const tid =JSON.parse(req.body.tid)+date
+            const query2 = {"tid":tid,"trainer_Name":req.body.tname,"trainer_Experience":req.body.tExp,"trainer_Category":req.body.topt,"trainer_Description":req.body.desc}
             const db = dbres.db('Agmay')
 
             db.collection('courses').updateOne(query1,{$push:{trainers:query2}},(err,result)=>{
@@ -461,7 +464,7 @@ if(err){
     console.log(err)
 }
 else{
-    console.log(result)
+    
     res.status(200).send({auth:true,data:result})
 }
             })
@@ -499,6 +502,7 @@ admin.post('/photoGallery',(req,res)=>{
     const id =imgFile.name.name
      for(let i=0; i<imgFile.image.length;i++){
         let obj={}
+        obj['id']=i
         obj[i]="image"+i
         obj['image']=imgFile.image[i].data
 arr.push(obj)
@@ -517,7 +521,7 @@ arr.push(obj)
                            console.log(er)
                        }
                        else{
-                           console.log(value,'insert')
+
                            res.status(200).send({auth:true,data:value})
                        }
                    })       
@@ -528,7 +532,7 @@ arr.push(obj)
                                    console.log(err)
                                }
                                else{
-                                   console.log(data,'update')
+                                  
                                    res.status(200).send(data)
                                }
                            })
