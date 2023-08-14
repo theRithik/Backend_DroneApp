@@ -284,6 +284,8 @@ admin.post('/Register',(req,response)=>{
                         Institute_Name:req.body.InstName,
                         Institute_Email:req.body.Email,
                         Password:hashedPassword,
+                        status:req.body.status?req.body.status:'Active',
+                        role:req.body.role?req.body.role:'Admin',
                         data_Created:new Date().toISOString().split('T')[0].split('-').reverse().join('-')
                     }
                    
@@ -369,7 +371,31 @@ admin.post('/instituteLogin',(req,res)=>{
     })
 
 })
+admin.put('/addAdminImage',(req,res)=>{
 
+    const imgFile = req.files
+    const image = imgFile.image.data
+    const id = imgFile.image.name
+    client.connect((dberr,dbres)=>{
+        if(dberr){
+            console.log(dberr)
+        }
+        else{
+            const db = dbres.db('Agmay')
+            const _id = {"_id":ObjectId(id)}
+            const query = {"profile_photo":image}
+            db.collection('instituteDetails').updateOne(_id,{$set:query},(er,result)=>{
+                if(er){
+                    console.log(er)
+                }
+                else{
+                    res.status(200).send({auth:true,data:result})
+                }
+            })
+        }
+    })
+
+})
 
 admin.post('/addTrainer',(req,res)=>{
     client.connect((dberr,dbres)=>{
