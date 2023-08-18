@@ -43,6 +43,7 @@ admin.post('/addCourse',(req,res)=>{
                 "startDate":req.body.date,
                 "display_image":req.body.image,
                 "courseDuration":req.body.courseDuration,
+                "courseType":req.body.courseType,
       "droneType":req.body.droneType,
       "droneCategory":req.body.droneCategory,
       "description":req.body.description,

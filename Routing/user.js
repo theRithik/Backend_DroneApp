@@ -64,7 +64,8 @@ user.post('/userRegister',(req,response)=>{
                         First_Name:req.body.Name,
                         user_Email:req.body.Email,
                         password:hashedPassword,
-                        role:'Admin',
+                        status:'Active',
+                        role:'User',
                         data_Created:new Date().toISOString().split('T')[0].split('-').reverse().join('-')
                     }
                    
